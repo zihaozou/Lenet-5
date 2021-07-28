@@ -6,6 +6,7 @@ classdef myPoolingLayer
         inputSize;
         outputSize;
         x;
+        M;
     end
     
     methods
@@ -15,39 +16,33 @@ classdef myPoolingLayer
         end
         
         function [obj,output] = forward(obj,input)
-            assert(numel(input),prod(obj.inputSize,'all'),"输入参数大小不符合要求");
-            if ~isequal(size(input),obj.inputSize)
-                input=reshape(input,obj.inputSize);
-            end
             obj.x=input;
-            [hi,wi,numIn]=size(input);
-            output=zeros(hi/2,wi/2,numIn);
+            [hi,wi,numIn,obj.M]=size(input);
+            output=zeros(hi/2,wi/2,numIn,obj.M);
             [ho,wo]=size(output,[1 2]);
-            for c=1:numIn
-                for h=1:ho
-                    for w=1:wo
-                        output(h,w,c)=(input(h*2-1,w*2-1,c)+...
-                            input(h*2,w*2-1,c)+...
-                            input(h*2-1,w*2,c)+...
-                            input(h*2,w*2,c))/4;
+            for m=1:obj.M
+                for c=1:numIn
+                    for h=1:ho
+                        for w=1:wo
+                            output(h,w,c,m)=(input(h*2-1,w*2-1,c,m)+...
+                                input(h*2,w*2-1,c,m)+...
+                                input(h*2-1,w*2,c,m)+...
+                                input(h*2,w*2,c,m))/4;
+                        end
                     end
                 end
             end
             
         end
         
-        function [obj,error]=backward(obj,preError)
-            assert(numel(preError),prod(obj.outputSize,'all'),"输入参数大小不符合要求");
-            if ~isequal(size(preError),obj.outputSize)
-                preError=reshape(preError,obj.outputSize);
-            end
-            [hi,wi,numIn]=size(preError);
-            error=zeros(hi*2,wi*2,numIn);
+        function [obj,error]=backward(obj,preError,epoch)
+            [hi,wi,numIn,~]=size(preError);
+            error=zeros(hi*2,wi*2,numIn,obj.M);
             preError=preError/4;
-            error(1:2:hi*2-1,1:2:wi*2-1,:)=preError;
-            error(2:2:hi*2,2:2:wi*2,:)=preError;
-            error(1:2:hi*2-1,2:2:wi*2,:)=preError;
-            error(2:2:hi*2,1:2:wi*2-1,:)=preError;
+            error(1:2:hi*2-1,1:2:wi*2-1,:,:)=preError;
+            error(2:2:hi*2,2:2:wi*2,:,:)=preError;
+            error(1:2:hi*2-1,2:2:wi*2,:,:)=preError;
+            error(2:2:hi*2,1:2:wi*2-1,:,:)=preError;
         end
     end
 end

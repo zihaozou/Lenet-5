@@ -1,15 +1,16 @@
 classdef myReLuLayer
     properties
-        x
+        inputSize;
+        outputSize;
+        x;
     end
-    methods        
+    methods
         function [obj,output] = forward(obj,input)
             obj.x=input;
             output=max(0,input);
         end
-        function [obj,error]=backward(obj,preError)
-            error=zeros(size(obj.x));
-            error(obj.x>0)=1;
+        function [obj,error]=backward(obj,preError,epoch)
+            error=obj.x>0;
             error=error.*preError;
         end
     end
